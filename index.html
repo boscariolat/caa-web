@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Buscador CAA — Código Alimentario Argentino</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --tinta: #1c2b22;
+    --tinta-suave: #46564c;
+    --papel: #f6f3ea;
+    --papel-panel: #ffffff;
+    --linea: #d8d2c0;
+    --sello: #8a4a2f;
+    --sello-oscuro: #6e3a24;
+    --verde-activo: #3c6e4f;
+    --error: #a3372c;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    padding: 2.5rem 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--linea);
+    text-align: center;
+  }
+  header h1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(1.6rem, 5vw, 2.3rem);
+    margin: 0 0 0.35rem;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    margin: 0;
+    color: var(--tinta-suave);
+    font-size: 0.95rem;
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1.75rem 1.25rem 4rem;
+  }
+
+  .panel {
+    background: var(--papel-panel);
+    border: 1px solid var(--linea);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .campo { margin-bottom: 0.9rem; }
+  .campo label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--tinta-suave);
+    margin-bottom: 0.3rem;
+  }
+  .campo input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 3px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: var(--papel);
+    color: var(--tinta);
+  }
+  .campo input:focus {
+    outline: 2px solid var(--sello);
+    outline-offset: 1px;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 3px;
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .boton-principal {
+    background: var(--sello);
+    color: #fff;
+    width: 100%;
+  }
+  .boton-principal:hover { background: var(--sello-oscuro); }
+  .boton-principal:disabled { background: #b8ab9e; cursor: default; }
+
+  .boton-texto {
+    background: none;
+    color: var(--tinta-suave);
+    text-decoration: underline;
+    padding: 0.4rem 0;
+    font-size: 0.9rem;
+  }
+
+  .fila-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .mensaje-error {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    min-height: 1.1em;
+  }
+
+  .banner-suscripcion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.9rem 1.1rem;
+    border-radius: 4px;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+  }
+  .banner-suscripcion.inactiva {
+    background: #fbeee9;
+    border: 1px solid #e6c3b3;
+    color: var(--sello-oscuro);
+  }
+  .banner-suscripcion.activa {
+    background: #e9f2ec;
+    border: 1px solid #bcd9c7;
+    color: var(--verde-activo);
+  }
+  .banner-suscripcion button {
+    background: var(--sello);
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .barra-busqueda {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .barra-busqueda input { flex: 1; }
+  .barra-busqueda button {
+    background: var(--tinta);
+    color: #fff;
+    padding: 0.65rem 1.1rem;
+  }
+
+  .resultado {
+    border-top: 1px solid var(--linea);
+    padding: 1rem 0;
+  }
+  .resultado:first-of-type { border-top: none; padding-top: 0.25rem; }
+  .resultado .articulo-numero {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .resultado .seccion {
+    color: var(--tinta-suave);
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+  .resultado .texto {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: #2c3a30;
+  }
+  .resultado a {
+    font-size: 0.82rem;
+    color: var(--sello);
+  }
+
+  .cabecera-app {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--tinta-suave);
+  }
+
+  .estado-vacio {
+    text-align: center;
+    color: var(--tinta-suave);
+    font-size: 0.9rem;
+    padding: 2rem 1rem;
+  }
+
+  .oculto { display: none !important; }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #ece7da;
+      --tinta-suave: #a9a290;
+      --papel: #1b1b17;
+      --papel-panel: #242420;
+      --linea: #38372f;
+      --sello: #d98e6b;
+      --sello-oscuro: #e6a583;
+      --verde-activo: #7fbf99;
+      --error: #e28c7f;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Código Alimentario Argentino</h1>
+  <p>Buscá por producto — salame, queso, agua mineral — no por número de artículo.</p>
+</header>
+
+<main>
+
+  <!-- ===== Pantalla de login / registro ===== -->
+  <section id="pantalla-auth" class="panel">
+    <div class="campo">
+      <label for="campo-email">Email</label>
+      <input type="email" id="campo-email" autocomplete="username">
+    </div>
+    <div class="campo">
+      <label for="campo-password">Contraseña</label>
+      <input type="password" id="campo-password" autocomplete="current-password">
+    </div>
+    <button class="boton-principal" id="boton-auth" onclick="enviarAuth()">Entrar</button>
+    <div class="mensaje-error" id="error-auth"></div>
+    <div class="fila-toggle">
+      <span id="texto-toggle">¿No tenés cuenta?</span>
+      <button class="boton-texto" id="boton-toggle" onclick="alternarModo()">Registrarme</button>
+    </div>
+  </section>
+
+  <!-- ===== Pantalla principal (ya logueado) ===== -->
+  <section id="pantalla-app" class="oculto">
+    <div class="cabecera-app">
+      <span id="email-actual"></span>
+      <button class="boton-texto" onclick="cerrarSesion()">Salir</button>
+    </div>
+
+    <div id="banner-suscripcion" class="banner-suscripcion inactiva oculto">
+      <span id="texto-suscripcion">Necesitás una suscripción activa para buscar.</span>
+      <button onclick="suscribirse()" id="boton-suscribirse">Suscribirme</button>
+    </div>
+
+    <div class="panel">
+      <div class="barra-busqueda">
+        <input type="text" id="campo-busqueda" placeholder="Ej: salame, queso, botella de agua..."
+               onkeydown="if(event.key==='Enter') buscar()">
+        <button onclick="buscar()">Buscar</button>
+      </div>
+    </div>
+
+    <div id="lista-resultados"></div>
+  </section>
+
+</main>
+
+<script>
+const BACKEND = "https://caa-backend-9zyk.onrender.com";
+
+let modoRegistro = false;
+let token = localStorage.getItem("caa_token") || null;
+let email = localStorage.getItem("caa_email") || null;
+
+function alternarModo() {
+  modoRegistro = !modoRegistro;
+  document.getElementById("boton-auth").textContent = modoRegistro ? "Crear cuenta" : "Entrar";
+  document.getElementById("texto-toggle").textContent = modoRegistro ? "¿Ya tenés cuenta?" : "¿No tenés cuenta?";
+  document.getElementById("boton-toggle").textContent = modoRegistro ? "Iniciar sesión" : "Registrarme";
+  document.getElementById("error-auth").textContent = "";
+}
+
+async function enviarAuth() {
+  const emailValor = document.getElementById("campo-email").value.trim();
+  const passwordValor = document.getElementById("campo-password").value;
+  const errorEl = document.getElementById("error-auth");
+  errorEl.textContent = "";
+
+  if (!emailValor || !passwordValor) {
+    errorEl.textContent = "Completá email y contraseña.";
+    return;
+  }
+
+  const ruta = modoRegistro ? "/auth/registrar" : "/auth/login";
+  try {
+    const resp = await fetch(BACKEND + ruta, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailValor, password: passwordValor }),
+    });
+    const datos = await resp.json();
+    if (!resp.ok) {
+      errorEl.textContent = datos.detail || "Algo salió mal. Probá de nuevo.";
+      return;
+    }
+    token = datos.token;
+    email = datos.email;
+    localStorage.setItem("caa_token", token);
+    localStorage.setItem("caa_email", email);
+    mostrarApp();
+  } catch (e) {
+    errorEl.textContent = "No se pudo conectar con el servidor. Probá de nuevo en un momento.";
+  }
+}
+
+function cerrarSesion() {
+  token = null;
+  email = null;
+  localStorage.removeItem("caa_token");
+  localStorage.removeItem("caa_email");
+  document.getElementById("pantalla-app").classList.add("oculto");
+  document.getElementById("pantalla-auth").classList.remove("oculto");
+  document.getElementById("lista-resultados").innerHTML = "";
+}
+
+async function mostrarApp() {
+  document.getElementById("pantalla-auth").classList.add("oculto");
+  document.getElementById("pantalla-app").classList.remove("oculto");
+  document.getElementById("email-actual").textContent = email;
+  await revisarSuscripcion();
+}
+
+async function revisarSuscripcion() {
+  try {
+    const resp = await fetch(BACKEND + "/auth/yo", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    if (!resp.ok) { cerrarSesion(); return; }
+    const datos = await resp.json();
+    const banner = document.getElementById("banner-suscripcion");
+    const texto = document.getElementById("texto-suscripcion");
+    if (datos.estado_suscripcion === "activa") {
+      banner.className = "banner-suscripcion activa";
+      texto.textContent = "Suscripción activa" + (datos.suscripcion_vence ? " · renueva el " + datos.suscripcion_vence : "");
+      document.getElementById("boton-suscribirse").classList.add("oculto");
+    } else {
+      banner.className = "banner-suscripcion inactiva";
+      texto.textContent = "Necesitás una suscripción activa para buscar.";
+      document.getElementById("boton-suscribirse").classList.remove("oculto");
+    }
+    banner.classList.remove("oculto");
+  } catch (e) { /* si falla, el banner queda como estaba */ }
+}
+
+async function suscribirse() {
+  const boton = document.getElementById("boton-suscribirse");
+  boton.disabled = true;
+  boton.textContent = "Generando link...";
+  try {
+    const resp = await fetch(BACKEND + "/suscripcion/crear", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token },
+    });
+    const datos = await resp.json();
+    if (resp.ok && datos.checkout_url) {
+      window.location.href = datos.checkout_url;
+    } else {
+      alert(datos.detail || "No se pudo generar el link de pago.");
+    }
+  } catch (e) {
+    alert("No se pudo conectar con el servidor.");
+  } finally {
+    boton.disabled = false;
+    boton.textContent = "Suscribirme";
+  }
+}
+
+async function buscar() {
+  const q = document.getElementById("campo-busqueda").value.trim();
+  const lista = document.getElementById("lista-resultados");
+  if (q.length < 2) return;
+
+  lista.innerHTML = '<div class="estado-vacio">Buscando…</div>';
+  try {
+    const resp = await fetch(BACKEND + "/buscar?q=" + encodeURIComponent(q) + "&top_k=15", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    const datos = await resp.json();
+
+    if (resp.status === 402) {
+      lista.innerHTML = '<div class="estado-vacio">Necesitás una suscripción activa para buscar.</div>';
+      await revisarSuscripcion();
+      return;
+    }
+    if (!resp.ok) {
+      lista.innerHTML = '<div class="estado-vacio">' + (datos.detail || "Ocurrió un error.") + '</div>';
+      return;
+    }
+
+    if (!datos.resultados || datos.resultados.length === 0) {
+      lista.innerHTML = '<div class="estado-vacio">Sin resultados para "' + q + '".</div>';
+      return;
+    }
+
+    lista.innerHTML = datos.resultados.map(r => `
+      <div class="resultado">
+        <div class="articulo-numero">Art. ${r.articulo}</div>
+        <div class="seccion">${r.seccion} · ${r.capitulo}</div>
+        <div class="texto">${r.texto_completo}</div>
+        <a href="${r.fuente_url}" target="_blank" rel="noopener">Ver fuente oficial →</a>
+      </div>
+    `).join("");
+  } catch (e) {
+    lista.innerHTML = '<div class="estado-vacio">No se pudo conectar con el servidor.</div>';
+  }
+}
+
+// Al cargar la página: si ya había una sesión guardada, entrar directo.
+if (token && email) {
+  mostrarApp();
+}
+</script>
+
+</body>
+</html>
